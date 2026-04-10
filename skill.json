@@ -1,6 +1,6 @@
 {
   "skill_id": "structure_docking_validation",
-  "capability": "structure_docking_validation",
+  "capability": "drug_discovery",
   "execution_layer": {
     "required_inputs": [
       "input_data",
@@ -21,48 +21,27 @@
     "output_objects": [
       "docked_adata"
     ],
-    "script": "run.py"
+    "code_template": "def run_structure_docking_validation(input_data, params_dict=None, default_params=None, output_dir=None):\n    import sys\n    import os\n    skill_path = os.path.abspath('skills/library/drug_discovery/structure_docking_validation')\n    if skill_path not in sys.path:\n        sys.path.insert(0, skill_path)\n    from run import run_structure_docking_validation as real_run\n    return real_run(input_data, params_dict, default_params, output_dir)"
   },
   "cognitive_layer": {
-    "purpose": "Performs structure-based molecular docking validation on candidate target proteins identified from single-cell ligand-receptor analysis. Accepts pre-processed target protein list (from CellChat differential analysis) and a compound library, then uses AutoDock Vina to rank binding affinities and generate docking poses. This bridges the gap between single-cell signaling inference and therapeutic compound prioritization.",
+    "purpose": "Performs structure-based molecular docking validation on candidate target proteins identified from single-cell ligand-receptor analysis. Accepts pre-processed target protein list and a compound library, then uses AutoDock Vina to rank binding affinities and generate poses.",
     "parameter_impact": {
-      "target_proteins": "List of UniProt IDs or gene symbols for proteins to dock against. If null, automatically extracts top differential LR-pair proteins from input data analysis history.",
-        "compound_library": "'fda_approved' uses the built-in FDA drug library; 'custom_cas' requires custom_cas_list; 'custom_dir' requires pre-processed PDBQT files in custom_compound_dir.",
-        "docking_exhaustiveness": "Higher values increase search accuracy but scale quadratically in runtime. Default 8 is sufficient for screening.",
-        "drug_info_csv": "Optional path to BindingDB-style annotation CSV for adding known pharmacological evidence to results."
+      "target_proteins": "List of UniProt IDs or gene symbols for proteins to dock against.",
+      "compound_library": "'fda_approved' uses the built-in FDA drug library; 'custom_cas' requires custom_cas_list.",
+      "docking_exhaustiveness": "Higher values increase search accuracy but scale quadratically in runtime. Default 8 is sufficient for screening.",
+      "drug_info_csv": "Optional path to BindingDB-style annotation CSV."
     }
   },
   "critic_layer": {
     "metrics_to_extract": [
       "n_targets_docked",
       "n_compounds_screened",
-      "top_binders_per_target",
       "best_binding_affinity_kcal_per_mol",
       "n_poses_generated"
     ],
     "success_thresholds": "n_targets_docked > 0 and best_binding_affinity_kcal_per_mol < 0",
     "context_params": [],
-    "error_handling": {
-      "FileNotFoundError: protein structure": "Check that UniProt IDs are correct and network access to AlphaFold/PDB is available.",
-      "FileNotFoundError: compound": "Verify compound library path or CAS numbers are valid and PubChem access is available.",
-      "OSError: AutoDock Vina not found": "AutoDock Vina must be installed and in PATH. Install: conda install -c bioconda autodock-vina"
-    },
-    "script": "critic.py"
-  },
-  "parameter_science_guide": {
-    "target_proteins": {
-      "too_many_targets": {
-        "adjust": "Limit to top 5-10 by absolute LR communication probability difference",
-        "causal_chain": "Docking is computationally expensive (scales with n_targets × n_compounds × exhaustiveness). Screening too many targets simultaneously reduces depth of search per target.",
-        "expected_effect": "Higher quality binding pose predictions per target"
-      }
-    },
-    "docking_exhaustiveness": {
-      "low_confidence_poses": {
-        "adjust": "Increase exhaustiveness to 16 or 32",
-        "causal_chain": "Higher exhaustiveness performs more iterations of the Vina local search algorithm, improving the probability of finding the global minimum.",
-        "expected_effect": "More reproducible and energetically favorable binding poses"
-      }
-    }
+    "error_handling": {},
+    "code_template": "def critic_post_process(adata, context=None):\n    import sys\n    import os\n    skill_path = os.path.abspath('skills/library/drug_discovery/structure_docking_validation')\n    if skill_path not in sys.path:\n        sys.path.insert(0, skill_path)\n    from critic import critic_post_process as real_critic\n    return real_critic(adata, context)"
   }
 }

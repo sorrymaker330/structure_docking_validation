@@ -1,0 +1,24 @@
+# ==========================================
+# structure_docking_validation Dependencies
+# ==========================================
+
+# 1. Base Agent Framework
+scanpy>=1.9.0
+anndata>=0.8.0
+pandas>=1.5.0
+numpy>=1.21.0
+
+# 2. Network & API Requests (AlphaFold & PubChem)
+requests>=2.28.0
+
+# 3. Cheminformatics & Ligand Preparation (SMILES to 3D PDBQT)
+rdkit>=2022.9.1
+meeko>=0.4.0
+
+# 4. Structural Bioinformatics & Receptor Preparation (PDB Processing)
+biopython>=1.80
+# AutoDockTools Python 3 社区移植版 (用于 prepare_receptor.py)
+git+https://github.com/diogomartins/AutoDockTools_py3.git
+
+# 5. Molecular Docking Engine (AutoDock Vina Python Bindings)
+vina>=1.2.3
